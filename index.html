@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A surprise for you</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --plum:#2a1740; --plum2:#3b2259; --lilac:#cbb8ff; --pink:#ff6f91; --butter:#ffe9a8; --white:#fffafc;
+  --head:'Bricolage Grotesque','Trebuchet MS',sans-serif;
+  --body:'DM Sans',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth}
+body{background:var(--plum);color:var(--white);font-family:var(--body);font-size:18px;line-height:1.65}
+h1,h2{font-family:var(--head);line-height:1.05}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--butter);outline-offset:3px}
+
+/* Prank screen */
+#prank{position:fixed;inset:0;z-index:30;background:#b3001b;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.1rem;text-align:center;padding:1.5rem;font-family:Arial,Helvetica,sans-serif;transition:opacity .6s,visibility .6s}
+#prank.gone{opacity:0;visibility:hidden}
+#prank .siren{font-size:4rem;animation:blink .7s steps(2) infinite}
+@keyframes blink{50%{opacity:.25}}
+#prank h2{font-family:Arial,Helvetica,sans-serif;font-size:clamp(1.6rem,6vw,2.6rem);color:#fff;margin:0}
+#prank p{max-width:34ch}
+.bar{width:min(420px,90%);height:16px;background:#5a000d;border-radius:8px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:#ffe14d}
+.pbtns{display:flex;gap:.8rem;flex-wrap:wrap;justify-content:center}
+.pbtns button{font:700 1rem Arial,sans-serif;padding:.8rem 1.4rem;border:0;border-radius:6px;cursor:pointer}
+.pbtns .fix{background:#fff;color:#b3001b}
+.pbtns .cancel{background:#5a000d;color:#fff}
+#prank.glitch{animation:shake .12s linear 10}
+@keyframes shake{0%{transform:translate(4px,-3px)}25%{transform:translate(-5px,2px)}50%{transform:translate(3px,4px)}75%{transform:translate(-4px,-4px)}100%{transform:translate(0)}}
+#prank.safe{background:var(--plum);color:var(--butter)}
+#prank.safe h2{color:var(--butter)}
+#prank.safe .bar,#prank.safe .siren{display:none}
+#prank.safe .pbtns .fix{background:var(--pink);color:var(--plum)}
+#prank.safe .cancel{display:none}
+#prank.safe .tiny{display:none}
+.tiny{font-size:.8rem;opacity:.8}
+
+/* Quiz screens */
+#quiz{position:fixed;inset:0;z-index:25;background:var(--plum);display:flex;align-items:center;justify-content:center;padding:1.5rem;text-align:center;transition:opacity .8s,visibility .8s}
+#quiz.gone{opacity:0;visibility:hidden}
+.stage{width:min(440px,100%)}
+.hidden{display:none}
+.stage h2{margin-bottom:.5rem}
+.note{color:var(--lilac);min-height:1.7em;margin-bottom:1rem}
+#arena{position:relative;height:210px;margin-top:1rem;touch-action:none}
+#arena button{position:absolute;font:800 1.05rem var(--head);border:0;border-radius:999px;padding:.9rem 1.3rem;cursor:pointer;transition:left .18s,top .18s,transform .2s}
+#loveBtn{left:0;top:70px;background:var(--pink);color:var(--plum)}
+#hateBtn{right:0;top:70px;background:var(--lilac);color:var(--plum)}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-top:1rem}
+.opts button{font:800 1.4rem var(--head);padding:1rem;border:0;border-radius:16px;background:var(--plum2);color:var(--butter);cursor:pointer;transition:transform .15s,background .15s}
+.opts button:hover{transform:scale(1.04);background:var(--pink);color:var(--plum)}
+#reply{margin-top:1.2rem;min-height:3.2em;color:var(--butter);font-weight:500}
+
+/* Date question + message */
+.row{display:flex;gap:1rem;justify-content:center;margin-top:1.2rem}
+.row button{font:800 1.3rem var(--head);border:0;border-radius:999px;padding:.9rem 2rem;cursor:pointer}
+#yesBtn{background:var(--pink);color:var(--plum)}
+#noBtn{background:var(--lilac);color:var(--plum)}
+.row button:disabled{opacity:.6;cursor:default}
+.fill{position:fixed;inset:0;z-index:41;pointer-events:none;overflow:hidden}
+.fill span{position:absolute;animation:pop .25s ease-out}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+#stage4 .letter{text-align:left;margin-bottom:1.5rem}
+#toGift{background:var(--pink);color:var(--plum);border:0;border-radius:999px;font:800 1.15rem var(--head);padding:1rem 2.2rem;cursor:pointer}
+
+/* Gift screen */
+#gift{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.5rem;background:var(--plum);text-align:center;padding:2rem;transition:opacity .8s,visibility .8s}
+#gift.gone{opacity:0;visibility:hidden}
+#gift p{color:var(--lilac)}
+#giftBtn{font-size:6rem;background:none;border:0;cursor:pointer;animation:wiggle 1.6s ease-in-out infinite;line-height:1}
+@keyframes wiggle{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg) scale(1.08)}}
+
+main{max-width:760px;margin:0 auto;padding:0 1.5rem 5rem}
+section{padding:4.5rem 0 0}
+
+/* Hero */
+.hero{min-height:92vh;display:flex;flex-direction:column;justify-content:center;padding-top:3rem}
+.hero h1{font-size:clamp(3rem,13vw,7rem);font-weight:800;color:var(--butter);letter-spacing:-.03em}
+.hero h1 span{display:block;color:var(--pink)}
+.hero p{margin-top:1.5rem;font-size:1.25rem;color:var(--lilac);max-width:30ch}
+
+h2{font-size:clamp(1.9rem,6vw,2.8rem);font-weight:800;margin-bottom:1.5rem;color:var(--butter)}
+
+/* Letter */
+.letter{background:var(--butter);color:var(--plum);padding:2rem 1.75rem;border-radius:6px 28px 6px 28px;transform:rotate(-.8deg)}
+.letter p+p{margin-top:1rem}
+.letter .sign{margin-top:1.5rem;font-family:var(--head);font-weight:800;font-size:1.3rem}
+
+/* Memories */
+.memories{display:grid;gap:1.5rem}
+.memory{background:var(--plum2);border-radius:20px;overflow:hidden}
+.memory:nth-child(even){margin-left:1.5rem}
+.memory:nth-child(odd){margin-right:1.5rem}
+.photo{aspect-ratio:4/3;background:linear-gradient(135deg,var(--pink),var(--lilac));display:grid;place-items:center;color:var(--plum);font-weight:500;text-align:center;padding:1rem}
+.photo img{width:100%;height:100%;object-fit:cover;display:block}
+.memory div.txt{padding:1.1rem 1.4rem 1.4rem}
+.memory h3{font-family:var(--head);font-size:1.3rem;color:var(--butter)}
+
+/* Reasons */
+.reasons{list-style:none;padding:0;display:grid;gap:.75rem}
+.reasons li{background:var(--plum2);border-left:6px solid var(--pink);padding:1rem 1.25rem;border-radius:0 14px 14px 0}
+
+/* Surprise button */
+.final{text-align:center}
+#more{background:var(--pink);color:var(--plum);border:0;border-radius:999px;font:800 1.15rem var(--head);padding:1rem 2.2rem;cursor:pointer;transition:transform .15s}
+#more:hover{transform:scale(1.05)}
+#reveal{margin-top:2rem;font-family:var(--head);font-weight:800;font-size:clamp(1.8rem,7vw,3rem);color:var(--butter);min-height:1.2em}
+
+.confetti{position:fixed;top:-2rem;font-size:1.6rem;pointer-events:none;z-index:40;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(540deg);opacity:.8}}
+
+footer{text-align:center;color:var(--lilac);padding-bottom:3rem}
+
+@media (prefers-reduced-motion:reduce){
+  #giftBtn,#prank .siren{animation:none}
+  #prank.glitch{animation:none}
+  .confetti{display:none}
+  html{scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ EDIT YOUR DETAILS HERE (see the script at the bottom) ============ -->
+
+<div id="prank" role="alertdialog" aria-labelledby="pTitle" aria-describedby="pText">
+  <div class="siren">🚨</div>
+  <h2 id="pTitle">WARNING: 47 VIRUSES DETECTED</h2>
+  <p id="pText">Your device is infected. All photos and contacts will be deleted in <b id="count">10</b> seconds.</p>
+  <div class="bar"><i id="barFill"></i></div>
+  <div class="pbtns">
+    <button class="fix" id="pFix">Fix now</button>
+    <button class="cancel" id="pCancel">Cancel</button>
+  </div>
+  <p class="tiny">Security Center</p>
+</div>
+
+<div id="quiz" role="region" aria-label="Surprise quiz">
+  <div class="stage" id="stage1">
+    <h2 id="q1Title"></h2>
+    <p class="note" id="qNote" aria-live="polite">Catch the answer in <b id="qCount">10</b> seconds</p>
+    <div id="arena">
+      <button id="loveBtn"></button>
+      <button id="hateBtn"></button>
+    </div>
+    <p id="hateReply" class="note"></p>
+  </div>
+  <div class="stage hidden" id="stage2">
+    <h2 id="q2Title"></h2>
+    <p class="note">Pick one</p>
+    <div class="opts" id="opts"></div>
+    <p id="reply" aria-live="polite"></p>
+  </div>
+  <div class="stage hidden" id="stage3">
+    <h2 id="q3Title"></h2>
+    <div class="row">
+      <button id="yesBtn"></button>
+      <button id="noBtn"></button>
+    </div>
+    <p class="note" id="dateNote" aria-live="polite" style="margin-top:1.2rem"></p>
+  </div>
+  <div class="stage hidden" id="stage4">
+    <div class="letter" id="dateMsg"></div>
+    <button id="toGift"></button>
+  </div>
+</div>
+
+<div id="gift">
+  <button id="giftBtn" aria-label="Open your surprise">🎁</button>
+  <p>Tap the gift. This one is just for you.</p>
+</div>
+
+<main>
+  <section class="hero">
+    <h1 id="heroName"></h1>
+    <p id="heroLine"></p>
+  </section>
+
+  <section>
+    <h2>I wrote you something</h2>
+    <div class="letter" id="letter"></div>
+  </section>
+
+  <section>
+    <h2>Our moments</h2>
+    <div class="memories" id="memories"></div>
+  </section>
+
+  <section>
+    <h2>Why you're my person</h2>
+    <ul class="reasons" id="reasons"></ul>
+  </section>
+
+  <section class="final">
+    <h2>One more thing</h2>
+    <button id="more">Reveal your message</button>
+    <div id="reveal" aria-live="polite"></div>
+    <div id="exitChoice" class="hidden" style="margin-top:2rem">
+      <h3>Would you like to leave this site, or would you like one more surprise?</h3>
+      <div class="row">
+        <button id="leaveBtn" type="button">I’m ready to leave</button>
+        <button id="againBtn" type="button">One more surprise</button>
+      </div>
+      <p id="exitReply" class="note" aria-live="polite"></p>
+    </div>
+  </section>
+
+  <footer><p id="footer"></p></footer>
+</main>
+
+<script>
+/* ==================== CHANGE THESE ==================== */
+const CONFIG = {
+  name: "Ace",                          // her nickname (Mary)
+  from: "Johnson",                      // your name
+  heroLine: "No special day. I just wanted to make something special for you.",
+  letter: [
+    "Hey Ace,",
+    "No birthday, no holiday, no reason. I just wanted you to know you matter, so I built you a whole website. Yes, really.",
+    "Thank you for every laugh, every random call, and every time you showed up without being asked. Life is better with you in it, Mary.",
+    "I hope this makes you smile as much as you make me smile."
+  ],
+  // Add a photo by setting photo to a file name, e.g. "photos/beach.jpg". Leave "" to show the colorful placeholder.
+  memories: [
+    { title: "How we became besties", text: "Some friendships just click, and ours did from the start.", photo: "photos/portrait-outdoors.jpg" },
+    { title: "Our endless laughs",    text: "The kind of laughing where nobody remembers the joke afterward.", photo: "photos/garden-selfie.jpeg" },
+    { title: "Our inside joke",       text: "You know the one. 😉", photo: "photos/tree-pose.jpeg" },
+    { title: "A favorite smile", text: "A little moment I wanted to keep.", photo: "photos/sunny-selfie.jpeg" }
+  ],
+  reasons: [
+    "You make me laugh when I need it most.",
+    "You tell me the truth, even when it's hard.",
+    "You celebrate my wins like they're yours.",
+    "You are simply the best company, Ace."
+  ],
+  finalMessage: "I love you, Ace. I'm so lucky you're my bestie. 💜",
+  footer: "Made with love"
+};
+/* ====================================================== */
+
+const $ = id => document.getElementById(id);
+const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+document.title = "A surprise for " + CONFIG.name;
+$('heroName').innerHTML = 'Hey<span>' + esc(CONFIG.name) + '</span>';
+$('heroLine').textContent = CONFIG.heroLine;
+$('letter').innerHTML = CONFIG.letter.map(p => '<p>' + esc(p) + '</p>').join('') +
+  '<p class="sign">With love, ' + esc(CONFIG.from) + '</p>';
+$('memories').innerHTML = CONFIG.memories.map(m =>
+  '<article class="memory"><div class="photo">' +
+  (m.photo ? '<img src="' + esc(m.photo) + '" alt="' + esc(m.title) + '">' : 'Your photo goes here') +
+  '</div><div class="txt"><h3>' + esc(m.title) + '</h3><p>' + esc(m.text) + '</p></div></article>').join('');
+$('reasons').innerHTML = CONFIG.reasons.map(r => '<li>' + esc(r) + '</li>').join('');
+$('footer').textContent = CONFIG.footer;
+
+function confetti(n, custom){
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const set = custom || ['🎉','💜','✨','🎈','💖'];
+  for (let i = 0; i < n; i++){
+    const e = document.createElement('span');
+    e.className = 'confetti';
+    e.textContent = set[Math.floor(Math.random() * set.length)];
+    e.style.left = Math.random() * 100 + 'vw';
+    e.style.animationDuration = (2.5 + Math.random() * 3) + 's';
+    e.style.animationDelay = (Math.random() * 0.8) + 's';
+    document.body.appendChild(e);
+    setTimeout(() => e.remove(), 7000);
+  }
+}
+
+/* ---- Prank logic ---- */
+const PRANK = {
+  revealTitle: "GOTCHA! 😂",
+  revealText: "No virus, I promise. Your phone is fine. Now open your real surprise.",
+  revealButton: "Open my surprise"
+};
+let left = 10, done = false;
+const prank = $('prank');
+const tick = setInterval(() => {
+  left--;
+  $('count').textContent = Math.max(left, 0);
+  $('barFill').style.width = ((10 - left) * 10) + '%';
+  if (left <= 0) trigger();
+}, 1000);
+
+function trigger(){
+  if (done) return;
+  done = true;
+  clearInterval(tick);
+  $('barFill').style.width = '100%';
+  prank.classList.add('glitch');
+  setTimeout(() => {
+    prank.classList.remove('glitch');
+    prank.classList.add('safe');
+    $('pTitle').textContent = PRANK.revealTitle;
+    $('pText').textContent = PRANK.revealText;
+    $('pFix').textContent = PRANK.revealButton;
+    $('pFix').dataset.open = '1';
+    confetti(30);
+  }, 1300);
+}
+$('pCancel').addEventListener('click', trigger);
+$('pFix').addEventListener('click', () => {
+  if ($('pFix').dataset.open) { prank.classList.add('gone'); startQuiz(); }
+  else trigger();
+});
+
+/* ---- Quiz logic (edit the texts here) ---- */
+const QUIZ = {
+  q1: "Ace, do you love me?",
+  loveLabel: "Yes, I love you 💜",
+  hateLabel: "No, I hate you",
+  hateReplies: [
+    "Wrong answer 😤 Try again.",
+    "Excuse me?! 😳",
+    "That button is broken. Pick the other one.",
+    "Are you sure? Think again 🥺",
+    "I'm going to pretend I didn't see that."
+  ],
+  catchSeconds: 10,
+  catchNote: "Okay okay, you can catch it now 😄",
+  q2: "How much do you love me?",
+  options: [
+    { label: "0%",    reply: "Zero?! 😭 I'm telling everyone." },
+    { label: "10%",   reply: "Ten percent? Do you even know me? 😒" },
+    { label: "50%",   reply: "Half? I wanted more than half 🥲" },
+    { label: "100%",  reply: "Aww, nice. But I know you can go higher 😏" },
+    { label: "500%",  reply: "So close! Just a little more 💪" },
+    { label: "1000%", reply: "That's the one! 💜 One more question...", correct: true }
+  ]
+};
+let running = false, hateCount = 0, advancing = false;
+const love = $('loveBtn'), hate = $('hateBtn');
+love.textContent = QUIZ.loveLabel;
+hate.textContent = QUIZ.hateLabel;
+$('q1Title').textContent = QUIZ.q1;
+$('q2Title').textContent = QUIZ.q2;
+
+function dodge(e){
+  if (!running) return;
+  if (e) e.preventDefault();
+  const a = $('arena');
+  love.style.left = Math.random() * (a.clientWidth - love.offsetWidth) + 'px';
+  love.style.top  = Math.random() * (a.clientHeight - love.offsetHeight) + 'px';
+}
+love.addEventListener('pointerenter', dodge);
+love.addEventListener('pointerdown', dodge);
+love.addEventListener('click', e => { if (running) return dodge(e); goStage2(); });
+
+hate.addEventListener('click', () => {
+  $('hateReply').textContent = QUIZ.hateReplies[hateCount % QUIZ.hateReplies.length];
+  hateCount++;
+  hate.style.transform = 'scale(' + Math.max(0.5, 1 - hateCount * 0.12) + ')';
+});
+
+function startQuiz(){
+  let s = QUIZ.catchSeconds;
+  running = true;
+  $('qCount').textContent = s;
+  const t = setInterval(() => {
+    s--;
+    $('qCount').textContent = Math.max(s, 0);
+    if (s <= 0){
+      clearInterval(t);
+      running = false;
+      $('qNote').textContent = QUIZ.catchNote;
+    }
+  }, 1000);
+}
+
+function goStage2(){
+  $('stage1').classList.add('hidden');
+  $('stage2').classList.remove('hidden');
+  $('opts').innerHTML = QUIZ.options.map((o, i) => '<button data-i="' + i + '">' + esc(o.label) + '</button>').join('');
+}
+$('opts').addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  const o = QUIZ.options[b.dataset.i];
+  $('reply').textContent = o.reply;
+  if (o.correct && !advancing){
+    advancing = true;
+    confetti(40);
+    setTimeout(goStage3, 1800);
+  }
+});
+
+/* ---- Date question + sweet message (edit the texts here) ---- */
+const DATE = {
+  q: "Ace, can you date me?",
+  yes: "Yes",
+  no: "No",
+  yesNote: "Waittt... 😭 are you serious?!",
+  noNote: "NO?! 😡",
+  message: [
+    "Ace,",
+    "Plot twist: what I really want is for you to stay my best friend. Always.",
+    "I love your voice notes, your chubby cheeks and your nose ring. Every little thing about you makes you special.",
+    "Thank you for being you."
+  ],
+  from: "Johnson",
+  button: "Open my surprise"
+};
+$('q3Title').textContent = DATE.q;
+$('yesBtn').textContent = DATE.yes;
+$('noBtn').textContent = DATE.no;
+$('toGift').textContent = DATE.button;
+$('dateMsg').innerHTML = DATE.message.map(p => '<p>' + esc(p) + '</p>').join('') +
+  '<p class="sign">With love, ' + esc(DATE.from) + '</p>';
+
+let answered = false;
+function goStage3(){
+  $('stage2').classList.add('hidden');
+  $('stage3').classList.remove('hidden');
+}
+function openMsg(){
+  $('stage3').classList.add('hidden');
+  $('stage4').classList.remove('hidden');
+}
+function angerFill(){
+  const layer = document.createElement('div');
+  layer.className = 'fill';
+  document.body.appendChild(layer);
+  const set = ['😡','🤬','😠','💢'];
+  let n = 0;
+  const t = setInterval(() => {
+    const e = document.createElement('span');
+    e.textContent = set[Math.floor(Math.random() * set.length)];
+    e.style.left = Math.random() * 92 + 'vw';
+    e.style.top = Math.random() * 92 + 'vh';
+    e.style.fontSize = (1.5 + Math.random() * 2.5) + 'rem';
+    layer.appendChild(e);
+    if (++n >= 130) clearInterval(t);
+  }, 70);
+  setTimeout(() => layer.remove(), 10600);
+}
+function pick(yes){
+  if (answered) return;
+  answered = true;
+  $('yesBtn').disabled = true;
+  $('noBtn').disabled = true;
+  if (yes){
+    $('dateNote').textContent = DATE.yesNote;
+    confetti(70, ['😭','😢','😭','💧']);
+    setTimeout(openMsg, 6000);
+  } else {
+    $('dateNote').textContent = DATE.noNote;
+    angerFill();
+    setTimeout(openMsg, 10000);
+  }
+}
+$('yesBtn').addEventListener('click', () => pick(true));
+$('noBtn').addEventListener('click', () => pick(false));
+$('toGift').addEventListener('click', () => $('quiz').classList.add('gone'));
+
+$('giftBtn').addEventListener('click', () => {
+  $('gift').classList.add('gone');
+  confetti(30);
+});
+$('more').addEventListener('click', () => {
+  $('reveal').textContent = CONFIG.finalMessage;
+  $('exitChoice').classList.remove('hidden');
+  confetti(40);
+});
+$('leaveBtn').addEventListener('click', () => {
+  const button = $('leaveBtn');
+  if (button.dataset.confirmed) {
+    $('exitReply').textContent = 'Thanks for visiting! You can close this tab whenever you’re ready. 💜';
+    return;
+  }
+  button.dataset.confirmed = '1';
+  button.textContent = 'Leave anyway';
+  $('exitReply').textContent = 'Wait, don’t go yet! Are you sure you don’t want one more surprise? 💜';
+});
+$('againBtn').addEventListener('click', () => {
+  $('exitReply').textContent = 'That’s enough for today! Here’s one last little surprise: you make life brighter just by being you. 💜';
+  confetti(35, ['🎁','💜','✨','🎉']);
+});
+</script>
+</body>
+</html>
